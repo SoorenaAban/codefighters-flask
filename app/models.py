@@ -1,6 +1,7 @@
 import datetime
 from . import db, login_manager
 from flask_login import UserMixin, AnonymousUserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
 
 class User(UserMixin, db.Model):
     __tablename__ = 'players'
@@ -14,6 +15,20 @@ class User(UserMixin, db.Model):
     avatar_hash = db.Column(db.String(32))
     reports = db.relationship('Report', backref='reported_player', lazy='dynamic')
     reports_made = db.relationship('Report', backref='reporting_player', lazy='dynamic')
+
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
+
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute')
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
 class Game(db.Model):
     __tablename__ = 'games'
